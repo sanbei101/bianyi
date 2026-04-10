@@ -143,7 +143,7 @@ export function useDerivation() {
       lines.push(line)
 
       // 如果是终结符或 ε，不再扩展
-      if (g.T.includes(symbol) || symbol === 'ε') {
+      if (g.T.includes(symbol) || symbol === 'ε' || depth > 20) {
         // 添加剩余符号
         if (remaining.length > 0) {
           for (let i = 0; i < remaining.length; i++) {

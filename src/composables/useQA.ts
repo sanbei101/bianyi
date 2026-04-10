@@ -5,6 +5,9 @@ import { qaRules } from '../data/qa-rules'
 // 停用词列表
 const stopWords = new Set(['的', '是', '什么', '啊', '呢', '了', '和', '与', '或', '在', '有', '个', '吗', '？', '?'])
 
+// 正则表达式（模块级别）
+const TOKENIZE_PATTERN = /[\s,，、。.!?()]+/
+
 // 课程选项（模块级别，避免重复创建）
 const courses: Array<{ label: string; value: Course }> = [
   { label: '编译原理', value: 'compiler' },
@@ -14,14 +17,14 @@ const courses: Array<{ label: string; value: Course }> = [
 
 export function useQA() {
   const currentCourse = ref<Course>('compiler')
-  const question = ref('什么是词法分析?')
+  const question = ref('')
   const answer = ref('')
   const matchedRule = ref<QARule | null>(null)
 
   // 分词函数
   function tokenize(text: string): string[] {
     return text
-      .split(/[\s,，、。.!?()（）]+/)
+      .split(TOKENIZE_PATTERN)
       .filter(token => token.length > 0 && !stopWords.has(token))
   }
 

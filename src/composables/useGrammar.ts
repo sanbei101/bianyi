@@ -1,6 +1,11 @@
 import { ref, computed } from 'vue'
 import type { Grammar } from '../types'
 
+// 正则表达式
+const ID_PATTERN = /^[a-z_]\w*$/i
+const DIGIT_PATTERN = /\d/
+const ID_CHAR_PATTERN = /[a-z_]/i
+
 // 内置算术表达式文法（消除左递归后）
 const grammar: Grammar = {
   V: ['E', 'E\'', 'T', 'T\'', 'F'],  // 非终结符
@@ -54,8 +59,8 @@ export function useGrammar() {
       if (char === ' ') continue
 
       // 处理 id (标识符)
-      if (/[a-z_]/i.test(char)) {
-        if (current && !/[a-z_]/i.test(current)) {
+      if (ID_CHAR_PATTERN.test(char)) {
+        if (current && !ID_CHAR_PATTERN.test(current)) {
           if (current) tokens.push(current)
           current = char
         } else {
@@ -64,7 +69,7 @@ export function useGrammar() {
       } else {
         if (current) {
           // 检查 current 是否是 id
-          if (/^[a-z_]\w*$/i.test(current)) {
+          if (ID_PATTERN.test(current)) {
             tokens.push('id')
           } else {
             tokens.push(current)
@@ -75,7 +80,7 @@ export function useGrammar() {
         // 处理运算符和括号
         if ('+-*/()'.includes(char)) {
           tokens.push(char)
-        } else if (/\d/.test(char)) {
+        } else if (DIGIT_PATTERN.test(char)) {
           // 数字作为 id 处理
           current += char
         }
@@ -83,7 +88,7 @@ export function useGrammar() {
     }
 
     if (current) {
-      if (/^[a-z_]\w*$/i.test(current)) {
+      if (ID_PATTERN.test(current)) {
         tokens.push('id')
       } else {
         tokens.push(current)

@@ -8,7 +8,8 @@ const {
   inputString,
   parseType,
   parseResult,
-  clear: clearParse
+  clear: clearParse,
+  execute: executeParse
 } = useParser()
 
 // 推导功能
@@ -24,6 +25,7 @@ function onDerivationTypeChange(type: 'left' | 'right') {
 }
 
 function execute() {
+  executeParse()
   derivationResult.value = executeDerivation(inputString.value)
 }
 
@@ -54,16 +56,10 @@ function clearAll() {
       <div>
         <label style="font-weight: 500; margin-bottom: 8px; display: block;">推导类型</label>
         <NSpace>
-          <NRadio
-            :checked="derivationType === 'left'"
-            @change="() => onDerivationTypeChange('left')"
-          >
+          <NRadio :checked="derivationType === 'left'" @change="() => onDerivationTypeChange('left')">
             最左推导
           </NRadio>
-          <NRadio
-            :checked="derivationType === 'right'"
-            @change="() => onDerivationTypeChange('right')"
-          >
+          <NRadio :checked="derivationType === 'right'" @change="() => onDerivationTypeChange('right')">
             最右推导
           </NRadio>
         </NSpace>
@@ -73,13 +69,11 @@ function clearAll() {
       <div>
         <label style="font-weight: 500; margin-bottom: 8px; display: block;">输入符号串</label>
         <NInput
-          v-model:value="inputString"
-          type="text"
-          placeholder="例如：id + id * id 或 if id then id else id"
+          v-model:value="inputString" type="text" placeholder="例如：id + id * id 或 if id then id else id"
           @keyup.enter="execute"
         />
         <div style="margin-top: 8px; font-size: 12px; color: #666;">
-          终结符: id, +, -, *, /, (, ) <br/>
+          终结符: id, +, -, *, /, (, ) <br />
           二义性检测: if id then if id then id else id
         </div>
       </div>
@@ -95,8 +89,7 @@ function clearAll() {
       <!-- 句型判定结果 -->
       <template v-if="parseResult">
         <NResult
-          :status="parseResult.isValid ? 'success' : 'error'"
-          :title="parseResult.isValid ? '是' : '不是'"
+          :status="parseResult.isValid ? 'success' : 'error'" :title="parseResult.isValid ? '是' : '不是'"
           :description="parseResult.message"
         >
           <template #footer>
@@ -118,8 +111,7 @@ function clearAll() {
               {{ derivationResult.message }}
             </div>
             <div
-              v-for="(step, idx) in derivationResult.steps"
-              :key="idx"
+              v-for="(step, idx) in derivationResult.steps" :key="idx"
               style="font-family: monospace; padding: 4px 0;"
             >
               <NTag size="small" style="margin-right: 8px;">{{ idx + 1 }}</NTag>
@@ -130,7 +122,9 @@ function clearAll() {
 
         <!-- 语法树 -->
         <NCardNested v-if="derivationResult.syntaxTree" title="语法树" embedded>
-          <pre style="font-family: monospace; font-size: 13px; line-height: 1.4; margin: 0;">{{ derivationResult.syntaxTree }}</pre>
+          <pre
+            style="font-family: monospace; font-size: 13px; line-height: 1.4; margin: 0;"
+          >{{ derivationResult.syntaxTree }}</pre>
         </NCardNested>
 
         <!-- 二义性检测结果 -->
@@ -141,10 +135,14 @@ function clearAll() {
 
             <div v-if="derivationResult.parseTrees && derivationResult.parseTrees.length > 0">
               <div style="font-weight: 500; margin-bottom: 8px;">语法树 1:</div>
-              <pre style="font-family: monospace; font-size: 13px; line-height: 1.4; background: #f5f5f5; padding: 12px; border-radius: 4px;">{{ derivationResult.parseTrees[0] }}</pre>
+              <pre
+                style="font-family: monospace; font-size: 13px; line-height: 1.4; background: #f5f5f5; padding: 12px; border-radius: 4px;"
+              >{{ derivationResult.parseTrees[0] }}</pre>
 
               <div style="font-weight: 500; margin: 12px 0 8px;">语法树 2:</div>
-              <pre style="font-family: monospace; font-size: 13px; line-height: 1.4; background: #f5f5f5; padding: 12px; border-radius: 4px;">{{ derivationResult.parseTrees[1] }}</pre>
+              <pre
+                style="font-family: monospace; font-size: 13px; line-height: 1.4; background: #f5f5f5; padding: 12px; border-radius: 4px;"
+              >{{ derivationResult.parseTrees[1] }}</pre>
             </div>
           </NSpace>
         </NCardNested>
