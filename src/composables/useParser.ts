@@ -30,6 +30,7 @@ export function useParser() {
 
   function parseE(): boolean {
     derivationSteps.push(`E → T E'`)
+    if (!parseT()) return false
     if (!parseE_prime()) return false
     return true
   }
@@ -54,6 +55,7 @@ export function useParser() {
 
   function parseT(): boolean {
     derivationSteps.push(`T → F T'`)
+    if (!parseF()) return false
     if (!parseT_prime()) return false
     return true
   }
