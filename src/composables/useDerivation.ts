@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import type { Grammar, DerivationResult } from '../types'
 
-// 内置算术表达式文法（消除左递归后）
+// 算术表达式文法
 const grammar: Grammar = {
   V: ['E', 'E\'', 'T', 'T\'', 'F'],
   T: ['id', '+', '-', '*', '/', '(', ')'],
@@ -38,156 +38,130 @@ export function useDerivation() {
   const derivationResult = ref<DerivationResult | null>(null)
   const currentGrammar = ref<Grammar>(grammar)
 
-  function expandSymbol(symbols: string[], nonTerminal: string, production: string): string[] {
-    const result = [...symbols]
-    const idx = result.indexOf(nonTerminal)
-    if (idx !== -1) {
-      const parts = production.split(' ')
-      result.splice(idx, 1, ...parts)
+
+
+  type TreeNode = { symbol: string; children: TreeNode[]; prod?: string };
+
+  function buildParseTree(tokens: string[], g: Grammar): TreeNode | null {
+    const table: Record<string, Record<string, string>> = {
+      "E": { "id": "T E'", "(": "T E'" },
+      "E'": { "+": "+ T E'", "-": "- T E'", ")": "ε", "EOF": "ε" },
+      "T": { "id": "F T'", "(": "F T'" },
+      "T'": { "*": "* F T'", "/": "/ F T'", "+": "ε", "-": "ε", ")": "ε", "EOF": "ε" },
+      "F": { "id": "id", "(": "( E )" }
+    };
+
+    let pos = 0;
+    function lookahead() { return pos < tokens.length ? tokens[pos] : "EOF"; }
+
+    function parseSymbol(sym: string): TreeNode | null {
+      if (sym === "ε") {
+        return { symbol: "ε", children: [] };
+      }
+      if (g.T.includes(sym)) {
+        if (lookahead() === sym) {
+          pos++;
+          return { symbol: sym, children: [] };
+        }
+        return null;
+      }
+
+      const la = lookahead();
+      const prod = table[sym]?.[la];
+      if (!prod) return null;
+
+      const node: TreeNode = { symbol: sym, children: [], prod };
+      const rhs = prod === "ε" ? [] : prod.split(" ");
+
+      if (rhs.length === 0) {
+        node.children.push({ symbol: "ε", children: [] });
+      } else {
+        for (const s of rhs) {
+          const child = parseSymbol(s);
+          if (!child) return null;
+          node.children.push(child);
+        }
+      }
+      return node;
     }
-    return result
+
+    const root = parseSymbol(g.S);
+    if (root && pos === tokens.length) {
+      return root;
+    }
+    return null;
   }
 
-  function getProductions(nonTerminal: string, g: Grammar): string[] {
-    return g.P.filter(p => p.left === nonTerminal).map(p => p.right)
-  }
+  function generateDerivationsFromTree(root: TreeNode, type: 'left' | 'right', g: Grammar): string[] {
+    const steps: string[] = [];
+    const symbols = [root];
 
-  function leftDerivation(inputSymbols: string[], g: Grammar): string[] {
-    const steps: string[] = []
-    let symbols = [...inputSymbols]
+    function currentString() {
+      const str = symbols.map(n => n.symbol).join(' ');
+      // 去除只包含 ε 的多余空格，保留必要的结构
+      return str.replace(/ ε/g, '').replace(/^ε /g, '').replace(/^ε$/g, 'ε');
+    }
 
-    steps.push(symbols.join(' '))
+    steps.push(currentString());
 
-    for (let i = 0; i < 100; i++) {
-      let found = false
-      for (const sym of symbols) {
-        if (g.V.includes(sym)) {
-          const productions = getProductions(sym, g)
-          if (productions.length > 0) {
-            const prod = productions.find(p => p !== 'ε') || productions[0]
-            symbols = expandSymbol(symbols, sym, prod)
-            steps.push(symbols.join(' '))
-            found = true
-            break
+    while (true) {
+      let targetIdx = -1;
+      if (type === 'left') {
+        targetIdx = symbols.findIndex(n => g.V.includes(n.symbol));
+      } else {
+        for (let i = symbols.length - 1; i >= 0; i--) {
+          if (g.V.includes(symbols[i].symbol)) {
+            targetIdx = i;
+            break;
           }
         }
       }
-      if (!found) break
 
-      if (symbols.every(s => g.T.includes(s) || s === 'ε')) {
-        break
+      if (targetIdx === -1) break;
+
+      const target = symbols[targetIdx];
+      symbols.splice(targetIdx, 1, ...target.children);
+      
+      const newStr = currentString();
+      if (newStr !== steps[steps.length - 1]) {
+         steps.push(newStr);
       }
     }
-
-    return steps
+    
+    // 如果最后全是 ε，确保至少保留结果
+    return steps;
   }
 
-  function rightDerivation(inputSymbols: string[], g: Grammar): string[] {
-    const steps: string[] = []
-    let symbols = [...inputSymbols]
 
-    steps.push(symbols.join(' '))
 
-    for (let i = 0; i < 100; i++) {
-      let found = false
-      for (let j = symbols.length - 1; j >= 0; j--) {
-        const sym = symbols[j]
-        if (g.V.includes(sym)) {
-          const productions = getProductions(sym, g)
-          if (productions.length > 0) {
-            const prod = productions.find(p => p !== 'ε') || productions[0]
-            symbols = expandSymbol(symbols, sym, prod)
-            steps.push(symbols.join(' '))
-            found = true
-            break
-          }
-        }
-      }
-      if (!found) break
-
-      if (symbols.every(s => g.T.includes(s) || s === 'ε')) {
-        break
-      }
-    }
-
-    return steps
-  }
-
-  // 简化的语法树构建 - 使用队列避免递归
-  function buildSyntaxTree(steps: string[], g: Grammar): string {
-    if (steps.length === 0) return ''
-
+  function buildSyntaxTreeFromAST(root: TreeNode): string {
     const lines: string[] = []
-    type Node = { symbols: string[]; depth: number; prefix: string; isLast: boolean }
-    const queue: Node[] = []
 
-    // 从第一个步骤开始
-    const start = steps[0].split(' ').filter(s => s !== 'ε')
-    queue.push({ symbols: start, depth: 0, prefix: '', isLast: true })
-
-    while (queue.length > 0) {
-      const node: Node | undefined = queue.shift()
-      if (!node) break
-      const { symbols, depth, prefix, isLast } = node
-      if (symbols.length === 0) continue
-
-      const symbol = symbols[0]
-      const remaining = symbols.slice(1)
-
-      // 构建当前行
+    function traverse(node: TreeNode, prefix: string, isLast: boolean, depth: number) {
       let line = prefix
       if (depth > 0) {
         line += isLast ? '└─ ' : '├─ '
       }
-      line += symbol
+      line += node.symbol
       lines.push(line)
 
-      // 如果是终结符或 ε，不再扩展
-      if (g.T.includes(symbol) || symbol === 'ε' || depth > 20) {
-        // 添加剩余符号
-        if (remaining.length > 0) {
-          for (let i = 0; i < remaining.length; i++) {
-            const r = remaining[i]
-            const rPrefix = prefix + (depth > 0 ? (isLast ? '    ' : '│   ') : '')
-            const rLine = rPrefix + (i === remaining.length - 1 ? '└─ ' : '├─ ') + r
-            lines.push(rLine)
-          }
-        }
-        continue
-      }
+      const remainingChildren = node.children.filter(n => n.symbol !== 'ε' || node.children.length === 1)
 
-      // 查找产生式
-      const productions = g.P.filter(p => p.left === symbol)
-      if (productions.length === 0) continue
-
-      const prod = productions[0].right
-      const children = prod === 'ε' ? [] : prod.split(' ')
-
-      const newPrefix = prefix + (depth > 0 ? (isLast ? '    ' : '│   ') : '')
-
-      // 将子节点加入队列（逆序以保持顺序）
-      for (let i = children.length - 1; i >= 0; i--) {
-        queue.unshift({
-          symbols: [children[i]],
-          depth: depth + 1,
-          prefix: newPrefix,
-          isLast: i === children.length - 1 && remaining.length === 0
-        })
-      }
-
-      // 将剩余符号加入队列
-      for (let i = remaining.length - 1; i >= 0; i--) {
-        queue.unshift({
-          symbols: [remaining[i]],
-          depth: depth + 1,
-          prefix: newPrefix,
-          isLast: i === remaining.length - 1
-        })
+      for (let i = 0; i < remainingChildren.length; i++) {
+        const child = remainingChildren[i]
+        const isChildLast = i === remainingChildren.length - 1
+        const childPrefix = prefix + (depth > 0 ? (isLast ? '    ' : '│   ') : '')
+        traverse(child, childPrefix, isChildLast, depth + 1)
       }
     }
 
+    if (root) {
+      traverse(root, '', true, 0)
+    }
     return lines.join('\n')
   }
+
+  // 简化的语法树构建 - 现已不再调用
 
   function detectAmbiguity(): DerivationResult {
     const tree1 = `S
@@ -267,16 +241,25 @@ export function useDerivation() {
       }
     }
 
-    const startSymbols = [g.S]
     let steps: string[]
 
-    if (derivationType.value === 'left') {
-      steps = leftDerivation(startSymbols, g)
-    } else {
-      steps = rightDerivation(startSymbols, g)
+    const root = buildParseTree(tokens, g);
+    if (!root) {
+        return {
+          steps: [],
+          syntaxTree: '',
+          isAmbiguous: false,
+          message: '符号串无法被文法解析'
+        };
     }
 
-    const syntaxTree = buildSyntaxTree(steps, g)
+    if (derivationType.value === 'left') {
+      steps = generateDerivationsFromTree(root, 'left', g)
+    } else {
+      steps = generateDerivationsFromTree(root, 'right', g)
+    }
+
+    const syntaxTree = buildSyntaxTreeFromAST(root)
 
     return {
       steps,
