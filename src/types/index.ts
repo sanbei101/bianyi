@@ -33,4 +33,6 @@ export type DerivationResult = {
   isAmbiguous: boolean     // 是否二义
   parseTrees?: string[]    // 如果二义，返回多个语法树
   message: string          // 提示信息
+  reductions?: string[]
+  handles?: string[]
 }

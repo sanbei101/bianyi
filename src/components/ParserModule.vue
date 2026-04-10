@@ -120,6 +120,21 @@ function clearAll() {
           </NSpace>
         </NCardNested>
 
+        <NCardNested v-if="derivationResult.reductions && derivationResult.handles" title="基于句柄的最左归约流程" embedded>
+          <NSpace vertical :size="8">
+            <div
+              v-for="(reduction, idx) in derivationResult.reductions" :key="`r-${ idx}`"
+              style="font-family: monospace; padding: 4px 0;"
+            >
+              <NTag size="small" type="info" style="margin-right: 8px;">{{ idx + 1 }}</NTag>
+              <span>{{ reduction }}</span>
+              <NTag v-if="derivationResult.handles[idx]" size="small" type="warning" style="margin-left: 16px;">
+                句柄: {{ derivationResult.handles[idx] }}
+              </NTag>
+            </div>
+          </NSpace>
+        </NCardNested>
+
         <!-- 语法树 -->
         <NCardNested v-if="derivationResult.syntaxTree" title="语法树" embedded>
           <pre

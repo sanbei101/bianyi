@@ -92,8 +92,9 @@ export function useDerivation() {
     return null;
   }
 
-  function generateDerivationsFromTree(root: TreeNode, type: 'left' | 'right', g: Grammar): string[] {
+  function generateDerivationsFromTree(root: TreeNode, type: 'left' | 'right', g: Grammar): { steps: string[], reductions?: string[], handles?: string[] } {
     const steps: string[] = [];
+    const handlesInfo: Array<{ handle: string, fromStepIndex: number }> = [];
     const symbols = [root];
 
     function currentString() {
@@ -125,11 +126,23 @@ export function useDerivation() {
       const newStr = currentString();
       if (newStr !== steps[steps.length - 1]) {
          steps.push(newStr);
+         if (type === 'left') {
+           handlesInfo.push({ handle: target.children.map(c => c.symbol).filter(s => s !== 'ε').join(' ') || 'ε', fromStepIndex: steps.length - 1 });
+         } else {
+           handlesInfo.push({ handle: target.children.map(c => c.symbol).filter(s => s !== 'ε').join(' ') || 'ε', fromStepIndex: steps.length - 1 });
+         }
       }
     }
     
     // 如果最后全是 ε，确保至少保留结果
-    return steps;
+    if (type === 'right') {
+      const reductions = steps.slice().reverse();
+      const handles = handlesInfo.slice().reverse().map(h => h.handle);
+      handles.push(''); // 最后一个归约到S没有句柄
+      return { steps, reductions, handles };
+    }
+    
+    return { steps };
   }
 
 
@@ -242,6 +255,8 @@ export function useDerivation() {
     }
 
     let steps: string[]
+    let reductions: string[] | undefined
+    let handles: string[] | undefined
 
     const root = buildParseTree(tokens, g);
     if (!root) {
@@ -254,9 +269,13 @@ export function useDerivation() {
     }
 
     if (derivationType.value === 'left') {
-      steps = generateDerivationsFromTree(root, 'left', g)
+      const res = generateDerivationsFromTree(root, 'left', g)
+      steps = res.steps
     } else {
-      steps = generateDerivationsFromTree(root, 'right', g)
+      const res = generateDerivationsFromTree(root, 'right', g)
+      steps = res.steps
+      reductions = res.reductions
+      handles = res.handles
     }
 
     const syntaxTree = buildSyntaxTreeFromAST(root)
@@ -265,7 +284,9 @@ export function useDerivation() {
       steps,
       syntaxTree,
       isAmbiguous: false,
-      message: `共 ${steps.length} 步推导`
+      message: `共 ${steps.length} 步推导`,
+      reductions,
+      handles
     }
   }
 

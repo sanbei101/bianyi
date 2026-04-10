@@ -3,6 +3,8 @@ import { NLayout, NLayoutHeader, NLayoutContent, NTabs, NTabPane, NH1, NSpace, N
 import QAModule from './components/QAModule.vue'
 import GrammarModule from './components/GrammarModule.vue'
 import ParserModule from './components/ParserModule.vue'
+import ChomskyModule from './components/ChomskyModule.vue'
+import LexerModule from './components/LexerModule.vue'
 </script>
 
 <template>
@@ -28,6 +30,12 @@ import ParserModule from './components/ParserModule.vue'
         </NTabPane>
         <NTabPane name="parser" tab="句型判定">
           <ParserModule />
+        </NTabPane>
+        <NTabPane name="chomsky" tab="四类文法">
+          <ChomskyModule />
+        </NTabPane>
+        <NTabPane name="lexer" tab="词法分析">
+          <LexerModule />
         </NTabPane>
       </NTabs>
     </NLayoutContent>
