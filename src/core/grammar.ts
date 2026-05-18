@@ -54,9 +54,9 @@ export class GrammarAnalyzer {
 
     if (isType3) return "Type3";
     if (isType2) return "Type2";
-    if (isType1) return "Type1";
     // 如果有非上下文无关的产生式,则是 Type 0
     if (hasNonContextFree) return "Type0";
+    if (isType1) return "Type1";
     return "Type0";
   }
 
@@ -224,19 +224,41 @@ export class GrammarAnalyzer {
   detectConflicts(predictTable: PredictTable): Conflict[] {
     const conflicts: Conflict[] = [];
 
-    for (const [nt, row] of predictTable) {
-      const seen: Map<string, Production[]> = new Map();
+    for (const [nt] of predictTable) {
+      // 检查每个非终结符的预测表行
+      const terminalMap: Map<string, Production[]> = new Map();
 
-      for (const [terminal, prod] of row) {
-        if (prod) {
-          if (!seen.has(terminal)) {
-            seen.set(terminal, []);
+      // 收集每个终结符对应的所有产生式
+      for (const prod of this.grammar.productions) {
+        if (prod.left !== nt) continue;
+
+        const firstSets = this.computeFirstSets();
+        const followSets = this.computeFollowSets(firstSets);
+        const firstOfRight = this.computeFirstOfString(prod.right, firstSets);
+
+        // 对于FIRST集中的每个终结符
+        for (const terminal of firstOfRight) {
+          if (terminal !== "ε") {
+            if (!terminalMap.has(terminal)) {
+              terminalMap.set(terminal, []);
+            }
+            terminalMap.get(terminal)!.push(prod);
           }
-          seen.get(terminal)!.push(prod);
+        }
+
+        // 如果产生式可以推导出ε,则对于FOLLOW集中的每个终结符
+        if (firstOfRight.has("ε")) {
+          for (const terminal of followSets.get(nt)!) {
+            if (!terminalMap.has(terminal)) {
+              terminalMap.set(terminal, []);
+            }
+            terminalMap.get(terminal)!.push(prod);
+          }
         }
       }
 
-      for (const [terminal, prods] of seen) {
+      // 检查是否有冲突
+      for (const [terminal, prods] of terminalMap) {
         if (prods.length > 1) {
           conflicts.push({
             type: "FIRST-FIRST",

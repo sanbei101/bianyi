@@ -37,16 +37,21 @@ export class SemanticAnalyzer {
 
   declareSymbol(name: string, type: string, line: number, column: number): void {
     const scope = this.symbolTable.currentScope;
-    const key = `${name}_${scope}`;
 
-    if (this.symbolTable.entries.has(key)) {
-      this.errors.push({
-        message: `Variable '${name}' is already defined in this scope`,
-        line,
-        column,
-        type: "REDEFINED",
-      });
-      return;
+    // 检查当前作用域中是否已存在该变量
+    const entries = this.symbolTable.entries.get(name);
+    if (entries) {
+      for (const entry of entries) {
+        if (entry.scope === scope) {
+          this.errors.push({
+            message: `Variable '${name}' is already defined in this scope`,
+            line,
+            column,
+            type: "REDEFINED",
+          });
+          return;
+        }
+      }
     }
 
     const entry: SymbolEntry = {
@@ -129,9 +134,11 @@ export class SemanticAnalyzer {
     const idNode = node.children.find((c) => c.type === "Identifier");
 
     if (idNode) {
+      // 先声明变量
       this.declareSymbol(String(idNode.value || ""), type, idNode.line || 0, idNode.column || 0);
     }
 
+    // 然后处理初始化表达式
     for (const child of node.children) {
       if (child.type !== "Identifier") {
         this.visitNode(child);
