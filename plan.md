@@ -6,7 +6,7 @@
 ## 2. 技术栈
 - Vue 3 (`<script setup lang="ts">`) + Naive UI  
 - 纯 TypeScript,所有对象类型使用 `type` 别名,禁用 `interface`  
-- Vite + pnpm  
+- 不要写style,尽可能直接使用Naive里面的组件,实在不行再使用 Tailwind CSS,禁止自定义样式类
 - 格式化:`pnpm fmt`,检查:`pnpm lint`  
 - LLM API: Deepseek v4 pro
 - 核心算法:DFA 词法、Chomsky 判定、LL(1) 全套、panic-mode 错误恢复、Zhang-Shasha 树编辑距离
@@ -31,7 +31,9 @@
 8. **整合测试**:所有模块串联,确保 `pnpm fmt` 和 `pnpm lint` 通过。
 
 ## 6. 规范与要求
-- 类型定义一律使用 `type`,示例:  
+- 类型定义一律使用 `type`,禁止 `interface`
+- 禁止使用 `any`,尽量使用具体类型或泛型约束
+- 在`pages/`文件夹下面新建页面,并在src/router.ts中添加路由,禁止在组件中直接使用 `<router-link>` 进行跳转,必须使用 `useRouter` 的 `router.push` 方法进行编程式导航。
 
 - 每次代码修改后,必须执行 pnpm fmt 和 pnpm lint,保证无格式/规则错误。
 
