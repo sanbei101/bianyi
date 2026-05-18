@@ -23,7 +23,7 @@ A -> ε`;
       const grammar = parseGrammar(grammarText);
 
       const epsilonProd = grammar.productions.find(
-        (p) => p.right.length === 1 && p.right[0] === "ε"
+        (p) => p.right.length === 1 && p.right[0] === "ε",
       );
       expect(epsilonProd).toBeDefined();
     });
