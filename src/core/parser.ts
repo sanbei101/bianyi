@@ -27,12 +27,6 @@ export class RecursiveDescentParser {
       : { type: "EOF", value: "", line: -1, column: -1 };
   }
 
-  private _peek(_offset: number = 0): Token {
-    const idx = this.pos + offset;
-    return idx < this.tokens.length
-      ? this.tokens[idx]
-      : { type: "EOF", value: "", line: -1, column: -1 };
-  }
 
   private advance(): Token {
     const token = this.current();
@@ -327,8 +321,8 @@ export class RecursiveDescentParser {
     if (!this.match("DELIMITER", ";")) {
       const init =
         this.match("KEYWORD", "int") ||
-        this.match("KEYWORD", "float") ||
-        this.match("KEYWORD", "char")
+          this.match("KEYWORD", "float") ||
+          this.match("KEYWORD", "char")
           ? this.parseDeclaration()
           : this.parseExpression();
       if (init) {
