@@ -34,27 +34,27 @@ function analyze() {
         }
         const [left, right] = parts
 
-        // 0型文法：左边至少包含一个非终结符（假设大写字母为非终结符）
+        // 0型文法:左边至少包含一个非终结符(假设大写字母为非终结符)
         if (!/[A-Z]/.test(left)) {
             isType0 = false
         }
 
-        // 1型文法：|left| <= |right| (排除 S -> ε)
+        // 1型文法:|left| <= |right| (排除 S -> ε)
         if (left !== 'S' || right !== 'ε') {
             if (left.length > right.replace(/ε/g, '').length && right !== 'ε') {
                 isType1 = false
             }
         }
 
-        // 2型文法：左边是一个非终结符
+        // 2型文法:左边是一个非终结符
         if (left.length !== 1 || !/[A-Z]/.test(left)) {
             isType2 = false
         }
 
-        // 3型文法：在2型的基础上，右边必须满足 A->aB 或 A->a (右线性) 或者 A->Ba 或 A->a (左线性)
-        // 简单判定：
-        // 右线性：右侧长度<=2，如果是2，第一个是小写(终结符)，第二个是大写(非终结符)
-        // 左线性：右侧长度<=2，如果是2，第一个是大写，第二个是小写
+        // 3型文法:在2型的基础上,右边必须满足 A->aB 或 A->a (右线性) 或者 A->Ba 或 A->a (左线性)
+        // 简单判定:
+        // 右线性:右侧长度<=2,如果是2,第一个是小写(终结符),第二个是大写(非终结符)
+        // 左线性:右侧长度<=2,如果是2,第一个是大写,第二个是小写
         if (right.length > 2) {
             isRightLinear = false; isLeftLinear = false;
         } else if (right.length === 2) {
@@ -68,15 +68,15 @@ function analyze() {
     isType1 = isType0 && isType1
 
     if (!isType0) {
-        result.value = { type: null, reason: '不符合0型文法：产生式左部必须至少包含一个非终结符', isValid: false }
+        result.value = { type: null, reason: '不符合0型文法:产生式左部必须至少包含一个非终结符', isValid: false }
     } else if (isType3) {
-        result.value = { type: 3, reason: '符合3型文法（正则文法）：左部全为单个非终结符，且右部满足统一的单侧线性特点', isValid: true }
+        result.value = { type: 3, reason: '符合3型文法(正则文法):左部全为单个非终结符,且右部满足统一的单侧线性特点', isValid: true }
     } else if (isType2) {
-        result.value = { type: 2, reason: '符合2型文法（上下文无关文法）：左部全为单个非终结符，但不全是右/左线性', isValid: true }
+        result.value = { type: 2, reason: '符合2型文法(上下文无关文法):左部全为单个非终结符,但不全是右/左线性', isValid: true }
     } else if (isType1) {
-        result.value = { type: 1, reason: '符合1型文法（上下文有关文法）：所有产生式左部长度 <= 右部长度', isValid: true }
+        result.value = { type: 1, reason: '符合1型文法(上下文有关文法):所有产生式左部长度 <= 右部长度', isValid: true }
     } else {
-        result.value = { type: 0, reason: '符合0型文法（短语结构文法）：左侧长度大于右侧等', isValid: true }
+        result.value = { type: 0, reason: '符合0型文法(短语结构文法):左侧长度大于右侧等', isValid: true }
     }
 }
 </script>
@@ -84,7 +84,7 @@ function analyze() {
 <template>
   <NCard title="乔姆斯基文法判定模块" embedded>
     <NSpace vertical>
-      <div>支持手动输入文法产生式，自动判定属于0/1/2/3型文法。（注：约定大写字母为非终结符，其他为终结符；用 '->' 分隔左右部，'ε' 表示空串）</div>
+      <div>支持手动输入文法产生式,自动判定属于0/1/2/3型文法。(注:约定大写字母为非终结符,其他为终结符;用 '->' 分隔左右部,'ε' 表示空串)</div>
 
       <NTable striped bordered>
         <thead>
@@ -97,7 +97,7 @@ function analyze() {
         <tbody>
           <tr>
             <td>0型 (短语结构)</td>
-            <td>α → β，α至少包含一个非终结符</td>
+            <td>α → β,α至少包含一个非终结符</td>
             <td>图灵机识别的语言</td>
           </tr>
           <tr>
@@ -107,7 +107,7 @@ function analyze() {
           </tr>
           <tr>
             <td>2型 (上下文无关)</td>
-            <td>A → β，左部必为单非终结符</td>
+            <td>A → β,左部必为单非终结符</td>
             <td>下推自动机 (编程语言语法)</td>
           </tr>
           <tr>
@@ -123,7 +123,7 @@ function analyze() {
 
       <NAlert v-if="result.reason" :type="result.isValid ? 'success' : 'error'" show-icon>
         <template #header>
-          判定结果：{{ result.type !== null ? `第 ${result.type} 型文法` : '格式错误' }}
+          判定结果:{{ result.type !== null ? `第 ${result.type} 型文法` : '格式错误' }}
         </template>
         {{ result.reason }}
       </NAlert>
