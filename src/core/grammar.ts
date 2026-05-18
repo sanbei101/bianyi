@@ -290,10 +290,17 @@ export class GrammarAnalyzer {
 
   getLeftmostDerivation(input: string[]): Production[] | null {
     const derivation: Production[] = [];
-    const sententialForm = [this.grammar.startSymbol];
+    const sententialForm: string[] = [this.grammar.startSymbol];
     let pos = 0;
+    let loopCount = 0;
+    const maxLoops = 1000; // 防止无限循环
 
     while (sententialForm.length > 0) {
+      loopCount++;
+      if (loopCount > maxLoops) {
+        return null; // 可能的无限循环
+      }
+
       const symbol = sententialForm[0];
 
       if (this.grammar.terminals.has(symbol)) {
@@ -312,6 +319,9 @@ export class GrammarAnalyzer {
         if (prod.right[0] !== "ε") {
           sententialForm.unshift(...prod.right);
         }
+      } else {
+        // 未知符号
+        return null;
       }
     }
 
@@ -319,17 +329,20 @@ export class GrammarAnalyzer {
   }
 
   private findProduction(nonTerminal: string, terminal: string): Production | null {
+    // 缓存FIRST和FOLLOW集,避免重复计算
+    const firstSets = this.computeFirstSets();
+    const followSets = this.computeFollowSets(firstSets);
+
     for (const prod of this.grammar.productions) {
       if (prod.left !== nonTerminal) continue;
 
-      const firstOfRight = this.computeFirstOfString(prod.right, this.computeFirstSets());
+      const firstOfRight = this.computeFirstOfString(prod.right, firstSets);
 
       if (firstOfRight.has(terminal)) {
         return prod;
       }
       if (firstOfRight.has("ε")) {
-        const follow = this.computeFollowSets(this.computeFirstSets());
-        if (follow.get(nonTerminal)?.has(terminal)) {
+        if (followSets.get(nonTerminal)?.has(terminal)) {
           return prod;
         }
       }

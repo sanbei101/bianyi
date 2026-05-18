@@ -4,10 +4,12 @@ import { NCard, NSpace, NInput, NButton, NTag, NTimeline, NTimelineItem } from "
 import { GrammarAnalyzer, parseGrammar } from "@/core/grammar";
 import type { GrammarType, Production } from "@/core/types";
 
-const grammarText = ref(`E -> E + T
-E -> T
-T -> T * F
-T -> F
+const grammarText = ref(`E -> T E'
+E' -> + T E'
+E' -> ε
+T -> F T'
+T' -> * F T'
+T' -> ε
 F -> ( E )
 F -> id`);
 
@@ -22,8 +24,13 @@ const buildDerivationSteps = (prods: Production[], start: string): string[] => {
   let current = start;
 
   for (const prod of prods) {
-    current = current.replace(prod.left, prod.right.join(" "));
-    steps.push(current);
+    // 只替换第一个匹配的非终结符(最左推导)
+    const index = current.indexOf(prod.left);
+    if (index !== -1) {
+      current =
+        current.slice(0, index) + prod.right.join(" ") + current.slice(index + prod.left.length);
+      steps.push(current);
+    }
   }
 
   return steps;
@@ -35,14 +42,17 @@ const analyze = () => {
     const analyzer = new GrammarAnalyzer(grammar);
     chomskyType.value = analyzer.detectChomskyType();
 
-    const input = inputString.value.split(/\s+/);
-    const result = analyzer.getLeftmostDerivation(input);
-    if (result) {
-      derivations.value = result;
-      derivationSteps.value = buildDerivationSteps(result, grammar.startSymbol);
-    }
+    // 使用setTimeout避免阻塞UI
+    setTimeout(() => {
+      const input = inputString.value.split(/\s+/);
+      const result = analyzer.getLeftmostDerivation(input);
+      if (result) {
+        derivations.value = result;
+        derivationSteps.value = buildDerivationSteps(result, grammar.startSymbol);
+      }
 
-    handle.value = analyzer.findHandle(input);
+      handle.value = analyzer.findHandle(input);
+    }, 0);
   } catch (e) {
     console.error(e);
   }
