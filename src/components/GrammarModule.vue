@@ -1,19 +1,21 @@
 <script setup lang="ts">
-import { NCard, NDescriptions, NDescriptionsItem, NTag, NSpace } from 'naive-ui'
-import { useGrammar } from '../composables/useGrammar'
+import { NCard, NDescriptions, NDescriptionsItem, NTag, NSpace } from "naive-ui";
+import { useGrammar } from "../composables/useGrammar";
 
-const {
-  grammarInfo,
-  productionList,
-  classifySymbol
-} = useGrammar()
+const { grammarInfo, productionList, classifySymbol } = useGrammar();
 
-function getTagType(symbolType: 'terminal' | 'non-terminal' | 'epsilon' | 'unknown'): 'success' | 'info' | 'warning' | 'error' {
+function getTagType(
+  symbolType: "terminal" | "non-terminal" | "epsilon" | "unknown",
+): "success" | "info" | "warning" | "error" {
   switch (symbolType) {
-    case 'terminal': return 'success'
-    case 'non-terminal': return 'info'
-    case 'epsilon': return 'warning'
-    default: return 'error'
+    case "terminal":
+      return "success";
+    case "non-terminal":
+      return "info";
+    case "epsilon":
+      return "warning";
+    default:
+      return "error";
   }
 }
 </script>
@@ -26,24 +28,14 @@ function getTagType(symbolType: 'terminal' | 'non-terminal' | 'epsilon' | 'unkno
         <NDescriptions :column="1" label-placement="left">
           <NDescriptionsItem label="V (非终结符集合)">
             <NSpace>
-              <NTag
-                v-for="symbol in grammarInfo.V"
-                :key="symbol"
-                type="info"
-                size="small"
-              >
+              <NTag v-for="symbol in grammarInfo.V" :key="symbol" type="info" size="small">
                 {{ symbol }}
               </NTag>
             </NSpace>
           </NDescriptionsItem>
           <NDescriptionsItem label="T (终结符集合)">
             <NSpace>
-              <NTag
-                v-for="symbol in grammarInfo.T"
-                :key="symbol"
-                type="success"
-                size="small"
-              >
+              <NTag v-for="symbol in grammarInfo.T" :key="symbol" type="success" size="small">
                 {{ symbol }}
               </NTag>
             </NSpace>
@@ -60,9 +52,9 @@ function getTagType(symbolType: 'terminal' | 'non-terminal' | 'epsilon' | 'unkno
           <div
             v-for="prod in productionList"
             :key="prod.index"
-            style="font-family: monospace; font-size: 14px;"
+            style="font-family: monospace; font-size: 14px"
           >
-            <span style="color: #18a058;">{{ prod.left }}</span>
+            <span style="color: #18a058">{{ prod.left }}</span>
             <span> → </span>
             <span>
               <NTag
@@ -70,7 +62,7 @@ function getTagType(symbolType: 'terminal' | 'non-terminal' | 'epsilon' | 'unkno
                 :key="idx"
                 :type="getTagType(classifySymbol(sym))"
                 size="tiny"
-                style="margin: 0 2px;"
+                style="margin: 0 2px"
               >
                 {{ sym }}
               </NTag>
