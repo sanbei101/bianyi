@@ -4,14 +4,12 @@ export class RecursiveDescentParser {
   private tokens: Token[];
   private pos: number;
   private errors: ParseError[];
-  private panicMode: boolean;
   private syncTokens: Set<string>;
 
   constructor(tokens: Token[]) {
     this.tokens = tokens;
     this.pos = 0;
     this.errors = [];
-    this.panicMode = false;
     this.syncTokens = new Set([";", "}", "$"]);
   }
 
@@ -29,7 +27,7 @@ export class RecursiveDescentParser {
       : { type: "EOF", value: "", line: -1, column: -1 };
   }
 
-  private peek(offset: number = 0): Token {
+  private _peek(_offset: number = 0): Token {
     const idx = this.pos + offset;
     return idx < this.tokens.length
       ? this.tokens[idx]
@@ -71,14 +69,12 @@ export class RecursiveDescentParser {
   }
 
   private synchronize(): void {
-    this.panicMode = true;
     while (!this.syncTokens.has(this.current().value) && this.current().type !== "EOF") {
       this.advance();
     }
     if (this.syncTokens.has(this.current().value)) {
       this.advance();
     }
-    this.panicMode = false;
   }
 
   private createNode(

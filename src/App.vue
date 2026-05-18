@@ -4,9 +4,9 @@ import { NLayout, NLayoutSider, NMenu, NIcon } from "naive-ui";
 import type { MenuOption } from "naive-ui";
 import {
   Code as CodeIcon,
-  TextGrammar as GrammarIcon,
-  TreeView as TreeIcon,
-  BrainCircuit as BrainIcon,
+  LetterCase as GrammarIcon,
+  Tree as TreeIcon,
+  Circle0 as BrainIcon,
   GitCompare as CompareIcon,
   Database as DatabaseIcon,
 } from "@vicons/tabler";

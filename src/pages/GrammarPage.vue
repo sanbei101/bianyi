@@ -58,8 +58,8 @@ const getTypeLabel = (type: GrammarType) => {
   return labels[type];
 };
 
-const getTypeColor = (type: GrammarType) => {
-  const colors: Record<GrammarType, string> = {
+const getTypeColor = (type: GrammarType): "error" | "warning" | "success" | "info" => {
+  const colors: Record<GrammarType, "error" | "warning" | "success" | "info"> = {
     Type0: "error",
     Type1: "warning",
     Type2: "success",

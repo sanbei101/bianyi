@@ -44,8 +44,13 @@ const getSymbolEntries = (
   return entries;
 };
 
-const getErrorColor = (type: SemanticError["type"]) => {
-  const colors: Record<SemanticError["type"], string> = {
+const getErrorColor = (
+  type: SemanticError["type"],
+): "warning" | "error" | "success" | "default" | "info" => {
+  const colors: Record<
+    SemanticError["type"],
+    "warning" | "error" | "success" | "default" | "info"
+  > = {
     REDEFINED: "warning",
     UNDEFINED: "error",
     TYPE_MISMATCH: "error",

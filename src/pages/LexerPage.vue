@@ -22,7 +22,10 @@ const columns: DataTableColumns<Token> = [
     title: "类型",
     key: "type",
     render(row) {
-      const typeColors: Record<string, string> = {
+      const typeColors: Record<
+        Token["type"],
+        "success" | "info" | "warning" | "default" | "error"
+      > = {
         KEYWORD: "success",
         IDENTIFIER: "info",
         NUMBER: "warning",
@@ -30,8 +33,11 @@ const columns: DataTableColumns<Token> = [
         OPERATOR: "default",
         DELIMITER: "default",
         UNKNOWN: "error",
+        COMMENT: "default",
+        WHITESPACE: "default",
+        EOF: "default",
       };
-      return h(NTag, { type: typeColors[row.type] || "default" }, { default: () => row.type });
+      return h(NTag, { type: typeColors[row.type] }, { default: () => row.type });
     },
   },
   {

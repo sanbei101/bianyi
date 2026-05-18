@@ -106,7 +106,7 @@ export class ZhangShashaTreeEdit {
     const m = this.nodes2.length;
 
     const dp: number[][] = Array.from({ length: n + 1 }, () =>
-      Array.from({ length: m + 1 }).fill(0),
+      Array.from<number>({ length: m + 1 }).fill(0),
     );
 
     for (let i = 1; i <= n; i++) {
