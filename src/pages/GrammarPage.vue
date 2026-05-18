@@ -1,14 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import {
-  NCard,
-  NSpace,
-  NInput,
-  NButton,
-  NTag,
-  NTimeline,
-  NTimelineItem,
-} from "naive-ui";
+import { NCard, NSpace, NInput, NButton, NTag, NTimeline, NTimelineItem } from "naive-ui";
 import { GrammarAnalyzer, parseGrammar } from "@/core/grammar";
 import type { GrammarType, Production } from "@/core/types";
 
@@ -24,6 +16,18 @@ const derivations = ref<Production[]>([]);
 const handle = ref<Production | null>(null);
 const inputString = ref("id + id * id");
 const derivationSteps = ref<string[]>([]);
+
+const buildDerivationSteps = (prods: Production[], start: string): string[] => {
+  const steps: string[] = [start];
+  let current = start;
+
+  for (const prod of prods) {
+    current = current.replace(prod.left, prod.right.join(" "));
+    steps.push(current);
+  }
+
+  return steps;
+};
 
 const analyze = () => {
   try {
@@ -42,18 +46,6 @@ const analyze = () => {
   } catch (e) {
     console.error(e);
   }
-};
-
-const buildDerivationSteps = (prods: Production[], start: string): string[] => {
-  const steps: string[] = [start];
-  let current = start;
-
-  for (const prod of prods) {
-    current = current.replace(prod.left, prod.right.join(" "));
-    steps.push(current);
-  }
-
-  return steps;
 };
 
 const getTypeLabel = (type: GrammarType) => {

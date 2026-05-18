@@ -114,8 +114,6 @@ export class RecursiveDescentParser {
   }
 
   private parseStatement(): ASTNode | null {
-    const token = this.current();
-
     if (
       this.match("KEYWORD", "int") ||
       this.match("KEYWORD", "float") ||
@@ -622,7 +620,7 @@ export class RecursiveDescentParser {
       } else if (this.match("OPERATOR", "++") || this.match("OPERATOR", "--")) {
         const op = this.advance();
         if (left) {
-          const node = this.createNode("UnaryExpression", `${op.value  }_post`, op.line, op.column);
+          const node = this.createNode("UnaryExpression", `${op.value}_post`, op.line, op.column);
           left.parent = node;
           node.children.push(left);
           left = node;
@@ -640,7 +638,12 @@ export class RecursiveDescentParser {
 
     if (this.match("NUMBER")) {
       this.advance();
-      return this.createNode("NumberLiteral", Number.parseFloat(token.value), token.line, token.column);
+      return this.createNode(
+        "NumberLiteral",
+        Number.parseFloat(token.value),
+        token.line,
+        token.column,
+      );
     }
 
     if (this.match("STRING")) {

@@ -31,7 +31,7 @@ const getSymbolEntries = (
   table: SymbolTable,
 ): { name: string; type: string; scope: number; line: number }[] => {
   const entries: { name: string; type: string; scope: number; line: number }[] = [];
-  for (const [name, symbolEntries] of table.entries) {
+  for (const [, symbolEntries] of table.entries) {
     for (const entry of symbolEntries) {
       entries.push({
         name: entry.name,

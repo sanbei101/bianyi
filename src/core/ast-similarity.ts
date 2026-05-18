@@ -105,9 +105,9 @@ export class ZhangShashaTreeEdit {
     const n = this.nodes1.length;
     const m = this.nodes2.length;
 
-    const dp: number[][] = new Array(n + 1)
-      .fill(0)
-      .map(() => new Array(m + 1).fill(0));
+    const dp: number[][] = Array.from({ length: n + 1 }, () =>
+      Array.from({ length: m + 1 }).fill(0),
+    );
 
     for (let i = 1; i <= n; i++) {
       dp[i][0] = dp[i - 1][0] + 1;
@@ -211,7 +211,7 @@ export function compareASTs(ast1: ASTNode, ast2: ASTNode): ASTSimilarityResult {
   return comparator.getSimilarity();
 }
 
-export function highlightDifferences(ast: ASTNode, operations: TreeEditOperation[]): Set<string> {
+export function highlightDifferences(_ast: ASTNode, operations: TreeEditOperation[]): Set<string> {
   const diffNodes = new Set<string>();
 
   for (const op of operations) {

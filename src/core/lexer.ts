@@ -238,7 +238,7 @@ export class Lexer {
     const twoChar = value + this.peek();
     if (operators.has(twoChar)) {
       value += this.advance();
-    } else if (this.peek() === "=" && operators.has(`${value  }=`)) {
+    } else if (this.peek() === "=" && operators.has(`${value}=`)) {
       value += this.advance();
     }
 

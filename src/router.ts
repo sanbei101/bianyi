@@ -1,5 +1,5 @@
-import { createRouter, createWebHistory  } from "vue-router";
-import type {RouteRecordRaw} from "vue-router";
+import { createRouter, createWebHistory } from "vue-router";
+import type { RouteRecordRaw } from "vue-router";
 import Home from "@/pages/Home.vue";
 import LexerPage from "@/pages/LexerPage.vue";
 import GrammarPage from "@/pages/GrammarPage.vue";

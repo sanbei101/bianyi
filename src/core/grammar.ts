@@ -39,7 +39,7 @@ export class GrammarAnalyzer {
 
       if (isType3 && prod.right.length > 0) {
         const right = prod.right.join(" ");
-        const hasNonTerminal = prod.right.some((s) => this.grammar.nonTerminals.has(s));
+        prod.right.some((s) => this.grammar.nonTerminals.has(s));
         const terminalPattern = /^[^A-Z]*(?:[A-Z][^A-Z]*)?$/;
         if (!terminalPattern.test(right)) {
           isType3 = false;
