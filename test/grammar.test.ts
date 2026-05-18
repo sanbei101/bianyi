@@ -149,5 +149,40 @@ F -> id`;
       expect(derivation).not.toBeNull();
       expect(derivation!.length).toBeGreaterThan(0);
     });
+
+    it("should handle left recursive grammar without infinite loop", () => {
+      const grammarText = `E -> E + T
+E -> T
+T -> T * F
+T -> F
+F -> ( E )
+F -> id`;
+      const grammar = parseGrammar(grammarText);
+      const analyzer = new GrammarAnalyzer(grammar);
+
+      // 左递归文法应该返回 null(无法完成推导) 而不是无限循环
+      const derivation = analyzer.getLeftmostDerivation(["id", "+", "id"]);
+      expect(derivation).toBeNull();
+    });
+
+    it("should complete derivation within limited steps", () => {
+      const grammarText = `E -> T E'
+E' -> + T E'
+E' -> ε
+T -> F T'
+T' -> * F T'
+T' -> ε
+F -> ( E )
+F -> id`;
+      const grammar = parseGrammar(grammarText);
+      const analyzer = new GrammarAnalyzer(grammar);
+
+      // 测试复杂表达式,确保在1000步内完成
+      const derivation = analyzer.getLeftmostDerivation(["id", "+", "id", "*", "id"]);
+      expect(derivation).not.toBeNull();
+      if (derivation) {
+        expect(derivation.length).toBeLessThan(1000);
+      }
+    });
   });
 });
