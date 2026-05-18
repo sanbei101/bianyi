@@ -5,6 +5,15 @@ import { NCard, NSpace, NInput, NButton, NDataTable, NTag } from "naive-ui";
 const inputCode = ref("x = 5 + 3.14 * b12");
 const lexResult = ref<Array<{ type: string; value: string }>>([]);
 
+const WHITESPACE_REGEX = /\s/;
+const ALPHA_REGEX = /[a-z_]/i;
+const DIGIT_REGEX = /\d/;
+const OPERATOR_REGEX = /[+\-*/=><!]/;
+const DELIMITER_REGEX = /[()[\]{};,]/;
+const WORD_REGEX = /\w/;
+const SINGLE_CHAR_OP_REGEX = /^[<>=!]$/;
+const FLOAT_ERROR_REGEX = /[a-z_.]/i;
+
 function analyze() {
   const code = inputCode.value;
   const tokens = [];
@@ -28,21 +37,21 @@ function analyze() {
 
     switch (state) {
       case "START":
-        if (/\s/.test(char)) {
+        if (WHITESPACE_REGEX.test(char)) {
           i++;
-        } else if (/[a-z_]/i.test(char)) {
+        } else if (ALPHA_REGEX.test(char)) {
           state = "IN_ID";
           currentToken += char;
           i++;
-        } else if (/\d/.test(char)) {
+        } else if (DIGIT_REGEX.test(char)) {
           state = "IN_INTEGER";
           currentToken += char;
           i++;
-        } else if (/[+\-*/=><!]/.test(char)) {
+        } else if (OPERATOR_REGEX.test(char)) {
           state = "IN_OP";
           currentToken += char;
           i++;
-        } else if (/[()[\]{};,]/.test(char)) {
+        } else if (DELIMITER_REGEX.test(char)) {
           tokens.push({ type: "界符", value: char });
           i++;
         } else {
@@ -53,7 +62,7 @@ function analyze() {
         break;
 
       case "IN_ID":
-        if (/\w/.test(char)) {
+        if (WORD_REGEX.test(char)) {
           currentToken += char;
           i++;
         } else {
@@ -64,14 +73,14 @@ function analyze() {
         break;
 
       case "IN_INTEGER":
-        if (/\d/.test(char)) {
+        if (DIGIT_REGEX.test(char)) {
           currentToken += char;
           i++;
         } else if (char === ".") {
           state = "IN_FLOAT";
           currentToken += char;
           i++;
-        } else if (/[a-z_]/i.test(char)) {
+        } else if (ALPHA_REGEX.test(char)) {
           // 数字后直接接字母,视为错误 (如 12a)
           state = "ERROR";
           currentToken += char;
@@ -84,10 +93,10 @@ function analyze() {
         break;
 
       case "IN_FLOAT":
-        if (/\d/.test(char)) {
+        if (DIGIT_REGEX.test(char)) {
           currentToken += char;
           i++;
-        } else if (/[a-z_.]/i.test(char)) {
+        } else if (FLOAT_ERROR_REGEX.test(char)) {
           // 浮点数后多余的小数点或字母 (如 1.2.3 或 1.2a)
           state = "ERROR";
           currentToken += char;
@@ -104,7 +113,7 @@ function analyze() {
         break;
 
       case "IN_OP":
-        if (char === "=" && /^[<>=!]$/.test(currentToken)) {
+        if (char === "=" && SINGLE_CHAR_OP_REGEX.test(currentToken)) {
           currentToken += char;
           i++;
         }
@@ -114,7 +123,7 @@ function analyze() {
         break;
 
       case "ERROR":
-        if (/\s/.test(char) || /[()[\]{};,]/.test(char) || /[+\-*/=><!]/.test(char)) {
+        if (WHITESPACE_REGEX.test(char) || DELIMITER_REGEX.test(char) || OPERATOR_REGEX.test(char)) {
           pushToken("词法错误(非法构造)", currentToken);
           currentToken = "";
           state = "START";

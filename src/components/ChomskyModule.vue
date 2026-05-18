@@ -16,6 +16,9 @@ const result = ref<{
   isValid: boolean;
 }>({ type: null, reason: "", isValid: false });
 
+const UPPERCASE_REGEX = /[A-Z]/;
+const EPSILON_REGEX = /ε/g;
+
 function analyze() {
   const lines = inputProductions.value
     .split("\n")
@@ -42,19 +45,19 @@ function analyze() {
     const [left, right] = parts;
 
     // 0型文法:左边至少包含一个非终结符(假设大写字母为非终结符)
-    if (!/[A-Z]/.test(left)) {
+    if (!UPPERCASE_REGEX.test(left)) {
       isType0 = false;
     }
 
     // 1型文法:|left| <= |right| (排除 S -> ε)
     if (left !== "S" || right !== "ε") {
-      if (left.length > right.replace(/ε/g, "").length && right !== "ε") {
+      if (left.length > right.replace(EPSILON_REGEX, "").length && right !== "ε") {
         isType1 = false;
       }
     }
 
     // 2型文法:左边是一个非终结符
-    if (left.length !== 1 || !/[A-Z]/.test(left)) {
+    if (left.length !== 1 || !UPPERCASE_REGEX.test(left)) {
       isType2 = false;
     }
 
@@ -66,13 +69,12 @@ function analyze() {
       isRightLinear = false;
       isLeftLinear = false;
     } else if (right.length === 2) {
-      if (/[A-Z]/.test(right[0])) isRightLinear = false;
-      if (/[A-Z]/.test(right[1])) isLeftLinear = false;
+      if (UPPERCASE_REGEX.test(right[0])) isRightLinear = false;
+      if (UPPERCASE_REGEX.test(right[1])) isLeftLinear = false;
     }
   }
 
   isType3 = isType2 && (isRightLinear || isLeftLinear);
-  isType2 = isType2;
   isType1 = isType0 && isType1;
 
   if (!isType0) {

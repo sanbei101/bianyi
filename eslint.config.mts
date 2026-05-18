@@ -22,6 +22,8 @@ export default antfu({
         varsIgnorePattern: "^_",
       },
     ],
+    "vue/html-indent": "off",
+    "vue/html-closing-bracket-newline": "off",
   },
   ignores: ["src/components/ui"],
 });

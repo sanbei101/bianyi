@@ -22,7 +22,7 @@ const stopWords = new Set([
 ]);
 
 // 正则表达式(模块级别)
-const TOKENIZE_PATTERN = /[\s,,、。.!?()]+/;
+const TOKENIZE_PATTERN = /[\s,、。.!?()]+/;
 
 // 课程选项(模块级别,避免重复创建)
 const courses: Array<{ label: string; value: Course }> = [
