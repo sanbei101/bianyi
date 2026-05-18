@@ -27,7 +27,6 @@ export class RecursiveDescentParser {
       : { type: "EOF", value: "", line: -1, column: -1 };
   }
 
-
   private advance(): Token {
     const token = this.current();
     this.pos++;
@@ -321,8 +320,8 @@ export class RecursiveDescentParser {
     if (!this.match("DELIMITER", ";")) {
       const init =
         this.match("KEYWORD", "int") ||
-          this.match("KEYWORD", "float") ||
-          this.match("KEYWORD", "char")
+        this.match("KEYWORD", "float") ||
+        this.match("KEYWORD", "char")
           ? this.parseDeclaration()
           : this.parseExpression();
       if (init) {
