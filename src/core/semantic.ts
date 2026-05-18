@@ -152,8 +152,10 @@ export class SemanticAnalyzer {
       );
     }
 
+    // 进入函数作用域
     this.enterScope();
 
+    // 处理参数 - 参数在函数作用域内声明
     const paramsNode = node.children.find((c) => c.type === "Parameter");
     if (paramsNode) {
       for (const param of paramsNode.children) {
@@ -165,6 +167,7 @@ export class SemanticAnalyzer {
       }
     }
 
+    // 处理函数体
     const bodyNode = node.children.find((c) => c.type === "Block");
     if (bodyNode) {
       this.visitNode(bodyNode);

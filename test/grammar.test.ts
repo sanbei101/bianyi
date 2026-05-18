@@ -121,7 +121,7 @@ F -> id`;
 
     it("should detect non-LL(1) grammar", () => {
       const grammarText = `S -> A a
-S -> B b
+S -> B a
 A -> ε
 B -> ε`;
       const grammar = parseGrammar(grammarText);

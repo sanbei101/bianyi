@@ -6,7 +6,7 @@ describe("Lexer", () => {
     const code = "int float char void if else while for return";
     const tokens = tokenize(code);
 
-    expect(tokens.filter((t) => t.type === "KEYWORD").length).toBe(10);
+    expect(tokens.filter((t) => t.type === "KEYWORD").length).toBe(9);
     expect(tokens.some((t) => t.value === "int")).toBe(true);
     expect(tokens.some((t) => t.value === "if")).toBe(true);
     expect(tokens.some((t) => t.value === "return")).toBe(true);
@@ -45,7 +45,7 @@ describe("Lexer", () => {
     const tokens = tokenize(code);
 
     const operators = tokens.filter((t) => t.type === "OPERATOR");
-    expect(operators.length).toBe(6);
+    expect(operators.length).toBe(5);
   });
 
   it("should tokenize delimiters", () => {

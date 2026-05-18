@@ -20,21 +20,26 @@ export class GrammarAnalyzer {
     let isType3 = true;
     let isType2 = true;
     let isType1 = true;
+    let hasNonContextFree = false;
 
     for (const prod of this.grammar.productions) {
       const leftLen = prod.left.length;
       const rightLen = prod.right.join(" ").length;
 
+      // Type 0: 左边长度可以大于右边 (但右边为空时除外)
+      // Type 1: 左边长度 <= 右边长度
       if (leftLen > rightLen && rightLen > 0) {
         isType1 = false;
         isType2 = false;
         isType3 = false;
-        break;
+        hasNonContextFree = true;
       }
 
+      // Type 2: 左边必须是单个非终结符
       if (leftLen !== 1 || !this.grammar.nonTerminals.has(prod.left)) {
         isType2 = false;
         isType3 = false;
+        hasNonContextFree = true;
       }
 
       if (isType3 && prod.right.length > 0) {
@@ -50,6 +55,8 @@ export class GrammarAnalyzer {
     if (isType3) return "Type3";
     if (isType2) return "Type2";
     if (isType1) return "Type1";
+    // 如果有非上下文无关的产生式,则是 Type 0
+    if (hasNonContextFree) return "Type0";
     return "Type0";
   }
 
