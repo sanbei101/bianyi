@@ -11,7 +11,6 @@
 - LLM API: Deepseek v4 pro
 - 核心算法:DFA 词法、Chomsky 判定、LL(1) 全套、panic-mode 错误恢复、Zhang-Shasha 树编辑距离
 
-
 ## 4. 核心模块要点
 - **词法分析**:DFA 识别关键字/标识符/常数/运算符/界符,输出 Token 列表,标注非法字符。
 - **文法层**:Chomsky 0~3 型自动判定,最左推导/归约步骤可视化,句柄定位。
@@ -34,7 +33,19 @@
 - 类型定义一律使用 `type`,禁止 `interface`
 - 禁止使用 `any`,尽量使用具体类型或泛型约束
 - 在`pages/`文件夹下面新建页面,并在src/router.ts中添加路由,禁止在组件中直接使用 `<router-link>` 进行跳转,必须使用 `useRouter` 的 `router.push` 方法进行编程式导航。
-
 - 每次代码修改后,必须执行 pnpm fmt 和 pnpm lint,保证无格式/规则错误。
-
 - 所有核心模块必须编写单元测试(Vitest)。
+- vue props必须这么写:
+```ts
+const props = defineProps<{
+  name: string
+  avatar?: string
+}>()
+```
+- vue emit 事件必须这么写:
+```ts
+const emit = defineEmits<{
+  change: [id: number]
+  update: [value: string]
+}>()
+```
