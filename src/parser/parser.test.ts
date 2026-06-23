@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 
-import { tokenize } from "@/core/lexer";
-import { parseTokens } from "@/core/parser";
+import { tokenize } from "@/lexer";
+import { parseTokens } from "@/parser";
 
 describe("Parser", () => {
   it("should parse variable declaration", () => {

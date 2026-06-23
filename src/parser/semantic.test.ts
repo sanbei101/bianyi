@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 
-import { tokenize } from "@/core/lexer";
-import { parseTokens } from "@/core/parser";
-import { analyzeSemantics } from "@/core/semantic";
+import { tokenize } from "@/lexer";
+import { parseTokens } from "@/parser";
+import { analyzeSemantics } from "@/parser/semantic";
 
 describe("Semantic Analysis", () => {
   it("should detect undefined variable", () => {

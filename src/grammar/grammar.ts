@@ -7,7 +7,7 @@ import type {
   PredictTable,
   LL1AnalysisResult,
   Conflict,
-} from "./types";
+} from "../types";
 
 export class GrammarAnalyzer {
   private grammar: Grammar;

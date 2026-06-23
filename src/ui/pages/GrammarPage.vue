@@ -2,8 +2,8 @@
 import { NCard, NSpace, NInput, NButton, NTag, NTimeline, NTimelineItem } from "naive-ui";
 import { ref } from "vue";
 
-import { GrammarAnalyzer, parseGrammar } from "@/core/grammar";
-import type { GrammarType, Production } from "@/core/types";
+import { GrammarAnalyzer, parseGrammar } from "@/grammar";
+import type { GrammarType, Production } from "@/types";
 
 const grammarText = ref(`E -> T E'
 E' -> + T E'

@@ -11,7 +11,7 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    include: ["test/**/*.test.ts"],
+    include: ["src/**/*.test.ts"],
   },
   build: {
     rolldownOptions: {

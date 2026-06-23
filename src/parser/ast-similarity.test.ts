@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 
-import { compareASTs } from "@/core/ast-similarity";
-import { tokenize } from "@/core/lexer";
-import { parseTokens } from "@/core/parser";
+import { tokenize } from "@/lexer";
+import { parseTokens } from "@/parser";
+import { compareASTs } from "@/parser/ast-similarity";
 
 describe("AST Similarity", () => {
   it("should return perfect similarity for identical ASTs", () => {

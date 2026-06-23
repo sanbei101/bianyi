@@ -1,13 +1,13 @@
 import { createRouter, createWebHistory } from "vue-router";
 import type { RouteRecordRaw } from "vue-router";
 
-import ASTPage from "@/pages/ASTPage.vue";
-import GrammarPage from "@/pages/GrammarPage.vue";
-import Home from "@/pages/Home.vue";
-import LexerPage from "@/pages/LexerPage.vue";
-import LL1Page from "@/pages/LL1Page.vue";
-import LLMPage from "@/pages/LLMPage.vue";
-import SemanticPage from "@/pages/SemanticPage.vue";
+import ASTPage from "@/ui/pages/ASTPage.vue";
+import GrammarPage from "@/ui/pages/GrammarPage.vue";
+import Home from "@/ui/pages/Home.vue";
+import LexerPage from "@/ui/pages/LexerPage.vue";
+import LL1Page from "@/ui/pages/LL1Page.vue";
+import LLMPage from "@/ui/pages/LLMPage.vue";
+import SemanticPage from "@/ui/pages/SemanticPage.vue";
 
 const routes: RouteRecordRaw[] = [
   {

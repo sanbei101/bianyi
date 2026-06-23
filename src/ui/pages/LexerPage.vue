@@ -3,8 +3,8 @@ import { NCard, NSpace, NInput, NButton, NDataTable, NTabs, NTabPane, NTag } fro
 import type { DataTableColumns } from "naive-ui";
 import { ref, h } from "vue";
 
-import { tokenize } from "@/core/lexer";
-import type { Token } from "@/core/types";
+import { tokenize } from "@/lexer";
+import type { Token } from "@/types";
 
 const code = ref(`int main() {
     int a = 10;

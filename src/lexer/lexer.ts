@@ -1,4 +1,4 @@
-import type { Token, TokenType } from "./types";
+import type { Token, TokenType } from "../types";
 
 const keywords = new Set([
   "if",

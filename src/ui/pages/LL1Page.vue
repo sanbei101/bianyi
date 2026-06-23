@@ -2,8 +2,8 @@
 import { NCard, NSpace, NInput, NButton, NTable, NTabs, NTabPane, NAlert } from "naive-ui";
 import { ref } from "vue";
 
-import { GrammarAnalyzer, parseGrammar } from "@/core/grammar";
-import type { FirstSet, FollowSet, PredictTable, Conflict } from "@/core/types";
+import { GrammarAnalyzer, parseGrammar } from "@/grammar";
+import type { FirstSet, FollowSet, PredictTable, Conflict } from "@/types";
 
 const grammarText = ref(`E -> T E'
 E' -> + T E'

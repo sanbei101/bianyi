@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { GrammarAnalyzer, parseGrammar } from "@/core/grammar";
+import { GrammarAnalyzer, parseGrammar } from "@/grammar";
 
 describe("Grammar", () => {
   describe("parseGrammar", () => {

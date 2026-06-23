@@ -13,10 +13,10 @@ import {
 } from "naive-ui";
 import { ref } from "vue";
 
-import { compareASTs } from "@/core/ast-similarity";
-import { tokenize } from "@/core/lexer";
-import { parseTokens } from "@/core/parser";
-import type { ASTNode, ASTSimilarityResult } from "@/core/types";
+import { tokenize } from "@/lexer";
+import { parseTokens } from "@/parser";
+import { compareASTs } from "@/parser/ast-similarity";
+import type { ASTNode, ASTSimilarityResult } from "@/types";
 
 const code1 = ref(`int main() {
     int a = 10;

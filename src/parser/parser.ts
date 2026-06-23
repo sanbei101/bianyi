@@ -1,4 +1,4 @@
-import type { Token, ASTNode, ASTNodeType, ParseError } from "./types";
+import type { Token, ASTNode, ASTNodeType, ParseError } from "../types";
 
 export class RecursiveDescentParser {
   private tokens: Token[];

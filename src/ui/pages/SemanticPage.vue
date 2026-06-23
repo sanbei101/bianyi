@@ -2,10 +2,10 @@
 import { NCard, NSpace, NInput, NButton, NTable, NTabs, NTabPane, NAlert } from "naive-ui";
 import { ref } from "vue";
 
-import { tokenize } from "@/core/lexer";
-import { parseTokens } from "@/core/parser";
-import { analyzeSemantics } from "@/core/semantic";
-import type { SymbolTable, SemanticError } from "@/core/types";
+import { tokenize } from "@/lexer";
+import { parseTokens } from "@/parser";
+import { analyzeSemantics } from "@/parser/semantic";
+import type { SymbolTable, SemanticError } from "@/types";
 
 const code = ref(`int main() {
     int a = 10;

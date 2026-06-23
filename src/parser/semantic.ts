@@ -1,4 +1,4 @@
-import type { SymbolTable, SymbolEntry, SemanticError, ASTNode } from "./types";
+import type { SymbolTable, SymbolEntry, SemanticError, ASTNode } from "../types";
 
 export class SemanticAnalyzer {
   private symbolTable: SymbolTable;

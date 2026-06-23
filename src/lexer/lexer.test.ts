@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { tokenize } from "@/core/lexer";
+import { tokenize } from "@/lexer";
 
 describe("Lexer", () => {
   it("should tokenize keywords", () => {

@@ -1,4 +1,4 @@
-import type { Token, Production, LLMConstraint, LLMGenerationResult, ParseError } from "./types";
+import type { Token, Production, LLMConstraint, LLMGenerationResult, ParseError } from "../types";
 
 export type LLMMessage = {
   role: "system" | "user" | "assistant";

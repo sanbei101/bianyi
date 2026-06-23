@@ -1,4 +1,4 @@
-import type { ASTNode, TreeEditOperation, ASTSimilarityResult } from "./types";
+import type { ASTNode, TreeEditOperation, ASTSimilarityResult } from "../types";
 
 class TreeNode {
   label: string;

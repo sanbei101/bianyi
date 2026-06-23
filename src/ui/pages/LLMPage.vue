@@ -2,9 +2,9 @@
 import { NCard, NSpace, NInput, NButton, NGrid, NGridItem, NTag, NAlert } from "naive-ui";
 import { ref } from "vue";
 
-import { tokenize } from "@/core/lexer";
-import { parseTokens } from "@/core/parser";
-import type { ParseError } from "@/core/types";
+import { tokenize } from "@/lexer";
+import { parseTokens } from "@/parser";
+import type { ParseError } from "@/types";
 
 const code = ref(`int main() {
     int a = 10
