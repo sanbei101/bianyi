@@ -351,6 +351,99 @@ export class GrammarAnalyzer {
     return null;
   }
 
+  // 判断输入是否为合法句子（仅含终结符，可从开始符号推导）
+  isSentence(input: string[]): boolean {
+    return this.getLeftmostDerivation(input) !== null;
+  }
+
+  // 判断输入是否为合法句型（可从开始符号推导出的符号串）
+  // 对 CFG 使用有界搜索：尝试有限步推导看能否得到目标串
+  isSententialForm(target: string[], maxSteps = 500): boolean {
+    const queue: string[][] = [[this.grammar.startSymbol]];
+    const visited = new Set<string>();
+    visited.add(this.grammar.startSymbol);
+
+    while (queue.length > 0) {
+      const current = queue.shift()!;
+      if (current.length > target.length + 5) continue;
+
+      // 匹配检查
+      if (current.length === target.length && current.every((s, i) => s === target[i])) {
+        return true;
+      }
+
+      // 对每个非终结符尝试展开
+      for (let i = 0; i < current.length; i++) {
+        if (!this.grammar.nonTerminals.has(current[i])) continue;
+
+        for (const prod of this.grammar.productions) {
+          if (prod.left !== current[i]) continue;
+
+          const next = [...current.slice(0, i), ...prod.right.filter((s) => s !== "ε"), ...current.slice(i + 1)];
+          const key = next.join(" ");
+          if (!visited.has(key)) {
+            visited.add(key);
+            queue.push(next);
+          }
+        }
+      }
+
+      if (visited.size > maxSteps) break;
+    }
+
+    return false;
+  }
+
+  // 自底向上归约步骤：从输入串开始，逐步将句柄归约为非终结符
+  getReductionSteps(input: string[]): string[][] | null {
+    const steps: string[][] = [input.slice()];
+    const current = input.slice();
+    let loopCount = 0;
+    const maxLoops = 1000;
+
+    while (loopCount < maxLoops) {
+      loopCount++;
+
+      // 检查是否已归约为开始符号
+      if (current.length === 1 && current[0] === this.grammar.startSymbol) {
+        return steps;
+      }
+
+      // 找句柄：从左到右扫描，找第一个可归约的子串
+      let reduced = false;
+      for (let i = 0; i < current.length; i++) {
+        for (const prod of this.grammar.productions) {
+          const right = prod.right;
+          if (right.length === 0 || right[0] === "ε") {
+            continue; // 跳过空产生式
+          }
+
+          if (i + right.length > current.length) continue;
+          let match = true;
+          for (let j = 0; j < right.length; j++) {
+            if (current[i + j] !== right[j]) {
+              match = false;
+              break;
+            }
+          }
+
+          if (match) {
+            // 执行归约
+            current.splice(i, right.length, prod.left);
+            steps.push(current.slice());
+            reduced = true;
+            break;
+          }
+        }
+        if (reduced) break;
+      }
+
+      if (!reduced) return null; // 无法继续归约
+    }
+
+    return null;
+  }
+
   findHandle(sententialForm: string[]): Production | null {
     for (let i = 0; i < sententialForm.length; i++) {
       for (const prod of this.grammar.productions) {

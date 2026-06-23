@@ -175,37 +175,18 @@ export async function diagnoseRaw(
   errorMessages: string[],
   onChunk?: (text: string) => void,
 ): Promise<string> {
-  const system = `你是编译原理助教。用中文简短诊断语法错误，格式如下，不要废话：
+  const system = `你是编译原理助教。用中文简短诊断语法错误,格式如下,不要废话:
 
-**原因**：一句话说明出错原因
-**修正**：给出修正后的关键代码行
+**原因**:一句话说明出错原因
+**修正**:给出修正后的关键代码行
 
-要求：不超过5行，不解释基础概念。`;
+要求:不超过5行,不解释基础概念。`;
   const user = `学生代码:\n\`\`\`\n${sourceCode}\n\`\`\`\n\n错误信息:\n${errorMessages.join("\n")}`;
 
   return onChunk ? chatStream(system, user, onChunk) : chat(system, user);
 }
 
-export async function generateWithConstraints(
-  prompt: string,
-  constraints: LLMConstraint[],
-  onChunk?: (delta: string) => void,
-): Promise<LLMGenerationResult> {
-  const constraintDesc = constraints
-    .map((c) => `[${c.description}]${c.allowedValues.join(", ")}`)
-    .join("\n");
-
-  const text = onChunk
-    ? await chatStream(
-        `你是一个代码生成器。严格遵守以下约束,只使用允许的符号,不要输出任何额外解释:\n\n${constraintDesc}`,
-        prompt,
-        onChunk,
-      )
-    : await chat(
-        `你是一个代码生成器。严格遵守以下约束,只使用允许的符号,不要输出任何额外解释:\n\n${constraintDesc}`,
-        prompt,
-      );
-
+function checkViolations(text: string, constraints: LLMConstraint[]): string[] {
   const violations: string[] = [];
   for (const c of constraints) {
     if (c.type === "TOKEN") {
@@ -216,8 +197,43 @@ export async function generateWithConstraints(
       }
     }
   }
+  return violations;
+}
 
-  return { text, tokens: [], isValid: violations.length === 0, violations };
+export async function generateWithConstraints(
+  prompt: string,
+  constraints: LLMConstraint[],
+  onChunk?: (delta: string) => void,
+  maxRetries = 2,
+): Promise<LLMGenerationResult> {
+  const constraintDesc = constraints
+    .map((c) => `[${c.description}]${c.allowedValues.join(", ")}`)
+    .join("\n");
+
+  const systemBase = `你是一个代码生成器。严格遵守以下约束,只使用允许的符号,不要输出任何额外解释:\n\n${constraintDesc}`;
+
+  let lastText = "";
+  let lastViolations: string[] = [];
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    const system = attempt === 0
+      ? systemBase
+      : `${systemBase}\n\n⚠️ 上次输出违规: ${lastViolations.join("; ")}。请严格只使用允许的符号重新生成。`;
+
+    const text = onChunk && attempt === 0
+      ? await chatStream(system, prompt, onChunk)
+      : await chat(system, prompt);
+
+    const violations = checkViolations(text, constraints);
+    lastText = text;
+    lastViolations = violations;
+
+    if (violations.length === 0) {
+      return { text, tokens: [], isValid: true, violations: [] };
+    }
+  }
+
+  return { text: lastText, tokens: [], isValid: false, violations: lastViolations };
 }
 
 // ── 无约束生成 ────────────────────────────────────────
@@ -258,6 +274,27 @@ export async function compareConstrainedVsUnconstrained(
   }).length;
 
   return { constrained, unconstrained, complianceRate: total > 0 ? satisfied / total : 1 };
+}
+
+// ── 诊断结果结构化解析 ────────────────────────────────
+export type DiagnosisResult = {
+  location: string;
+  cause: string;
+  fix: string;
+  raw: string;
+};
+
+export function parseDiagnosis(text: string): DiagnosisResult {
+  const causeMatch = text.match(/\*\*原因\*\*[::]\s*(.+)/);
+  const fixMatch = text.match(/\*\*修正\*\*[::]\s*([\s\S]*?)(?=\*\*|$)/);
+  const locationMatch = text.match(/\*\*位置\*\*[::]\s*(.+)/);
+
+  return {
+    location: locationMatch?.[1]?.trim() ?? "",
+    cause: causeMatch?.[1]?.trim() ?? "",
+    fix: fixMatch?.[1]?.trim() ?? "",
+    raw: text,
+  };
 }
 
 // ── 工具函数 ─────────────────────────────────────────

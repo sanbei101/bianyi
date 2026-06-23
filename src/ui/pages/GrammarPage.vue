@@ -19,6 +19,9 @@ const derivations = ref<Production[]>([]);
 const handle = ref<Production | null>(null);
 const inputString = ref("id + id * id");
 const derivationSteps = ref<string[]>([]);
+const reductionSteps = ref<string[][]>([]);
+const isSentenceResult = ref<boolean | null>(null);
+const isSententialResult = ref<boolean | null>(null);
 
 const buildDerivationSteps = (prods: Production[], start: string): string[] => {
   const steps: string[] = [start];
@@ -53,6 +56,14 @@ const analyze = () => {
       }
 
       handle.value = analyzer.findHandle(input);
+
+      // 句子/句型判定
+      isSentenceResult.value = analyzer.isSentence(input);
+      isSententialResult.value = analyzer.isSententialForm(input);
+
+      // 归约步骤
+      const reduction = analyzer.getReductionSteps(input);
+      reductionSteps.value = reduction ?? [];
     }, 0);
   } catch (e) {
     console.error(e);
@@ -119,6 +130,28 @@ analyze();
 
       <NCard v-if="handle" title="句柄定位">
         <p>句柄: {{ handle.left }} -> {{ handle.right.join(" ") }}</p>
+      </NCard>
+
+      <NCard title="句型 / 句子判定">
+        <NSpace>
+          <NTag :type="isSentenceResult ? 'success' : 'error'" size="large">
+            {{ isSentenceResult === null ? "待检测" : isSentenceResult ? "✅ 合法句子" : "❌ 非句子" }}
+          </NTag>
+          <NTag :type="isSententialResult ? 'success' : 'error'" size="large">
+            {{ isSententialResult === null ? "待检测" : isSententialResult ? "✅ 合法句型" : "❌ 非句型" }}
+          </NTag>
+        </NSpace>
+      </NCard>
+
+      <NCard v-if="reductionSteps.length > 0" title="归约步骤（自底向上）">
+        <NTimeline>
+          <NTimelineItem
+            v-for="(step, index) in reductionSteps"
+            :key="index"
+            :title="index === 0 ? '初始输入串' : index === reductionSteps.length - 1 ? '归约完成' : `归约步骤 ${index}`"
+            :content="step.join(' ')"
+          />
+        </NTimeline>
       </NCard>
     </NSpace>
   </div>
