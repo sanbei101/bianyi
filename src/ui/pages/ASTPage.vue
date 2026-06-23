@@ -15,7 +15,7 @@ import { ref } from "vue";
 
 import { tokenize } from "@/lexer";
 import { parseTokens } from "@/parser";
-import { compareASTs } from "@/parser/ast-similarity";
+import { compareASTs, highlightDifferences } from "@/parser/ast-similarity";
 import type { ASTNode, ASTSimilarityResult } from "@/types";
 
 const code1 = ref(`int main() {
@@ -31,6 +31,8 @@ const code2 = ref(`int main() {
 const similarityResult = ref<ASTSimilarityResult | null>(null);
 const ast1 = ref<ASTNode | null>(null);
 const ast2 = ref<ASTNode | null>(null);
+const diffNodes1 = ref<Set<string>>(new Set());
+const diffNodes2 = ref<Set<string>>(new Set());
 
 const analyze = () => {
   const tokens1 = tokenize(code1.value);
@@ -44,16 +46,22 @@ const analyze = () => {
 
   if (result1.ast && result2.ast) {
     similarityResult.value = compareASTs(result1.ast, result2.ast);
+    const diff = highlightDifferences(result1.ast, result2.ast);
+    diffNodes1.value = diff.nodes1;
+    diffNodes2.value = diff.nodes2;
   }
 };
 
-const renderAST = (node: ASTNode, indent = 0): string => {
-  const spaces = "  ".repeat(indent);
-  let result = `${spaces}${node.type}${node.value !== undefined ? `: ${node.value}` : ""}\n`;
+type LineNode = { text: string; diff: boolean };
+
+const renderAST = (node: ASTNode, diffSet: Set<string>, indent = 0): LineNode[] => {
+  const prefix = "  ".repeat(indent);
+  const label = `${node.type}${node.value !== undefined ? `: ${node.value}` : ""}`;
+  const lines: LineNode[] = [{ text: `${prefix}${label}`, diff: diffSet.has(node.id) }];
   for (const child of node.children) {
-    result += renderAST(child, indent + 1);
+    lines.push(...renderAST(child, diffSet, indent + 1));
   }
-  return result;
+  return lines;
 };
 
 analyze();
@@ -115,12 +123,45 @@ analyze();
           </NSpace>
         </NTabPane>
 
-        <NTabPane name="ast1" tab="AST 1">
-          <pre>{{ ast1 ? renderAST(ast1) : "" }}</pre>
+        <NTabPane name="diff" tab="差异高亮">
+          <NGrid :cols="2" :x-gap="16">
+            <NGridItem>
+              <NCard>
+                <template #header>
+                  <NSpace align="center">
+                    <span>AST 1</span>
+                    <NTag type="error" size="small">删除 / 重命名</NTag>
+                  </NSpace>
+                </template>
+                <pre v-if="ast1" class="text-sm leading-6">
+                  <template v-for="(line, i) in renderAST(ast1, diffNodes1)" :key="i"><span :class="line.diff ? 'bg-red-100 text-red-700 rounded px-1' : ''">{{ line.text }}
+</span></template>
+                </pre>
+              </NCard>
+            </NGridItem>
+            <NGridItem>
+              <NCard>
+                <template #header>
+                  <NSpace align="center">
+                    <span>AST 2</span>
+                    <NTag type="success" size="small">插入 / 重命名</NTag>
+                  </NSpace>
+                </template>
+                <pre v-if="ast2" class="text-sm leading-6">
+                  <template v-for="(line, i) in renderAST(ast2, diffNodes2)" :key="i"><span :class="line.diff ? 'bg-green-100 text-green-700 rounded px-1' : ''">{{ line.text }}
+</span></template>
+                </pre>
+              </NCard>
+            </NGridItem>
+          </NGrid>
         </NTabPane>
 
-        <NTabPane name="ast2" tab="AST 2">
-          <pre>{{ ast2 ? renderAST(ast2) : "" }}</pre>
+        <NTabPane name="ast1" tab="AST 1（完整）">
+          <pre v-if="ast1" class="text-sm">{{ renderAST(ast1, new Set()).map(l => l.text).join("\n") }}</pre>
+        </NTabPane>
+
+        <NTabPane name="ast2" tab="AST 2（完整）">
+          <pre v-if="ast2" class="text-sm">{{ renderAST(ast2, new Set()).map(l => l.text).join("\n") }}</pre>
         </NTabPane>
       </NTabs>
     </NSpace>

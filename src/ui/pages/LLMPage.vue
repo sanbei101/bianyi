@@ -10,11 +10,12 @@ import {
   NAlert,
   NTabs,
   NTabPane,
-  NSpin,
   NTable,
   NStatistic,
 } from "naive-ui";
 import { ref } from "vue";
+import MarkdownRender from "markstream-vue";
+import "markstream-vue/index.css";
 
 import { tokenize } from "@/lexer";
 import { GrammarAnalyzer, parseGrammar } from "@/grammar";
@@ -48,29 +49,30 @@ const analyze = () => {
   rawDiagnosis.value = "";
 };
 
-// 结构化错误信息送入 LLM
+// 结构化错误信息 → LLM（流式）
 const diagnoseWithLLM = async () => {
   if (errors.value.length === 0) return;
   diagnosing.value = true;
   llmDiagnosis.value = "";
 
   try {
-    let result = "";
     for (const error of errors.value) {
-      const diagnosis = await diagnoseError(error, code.value, syncSet.value);
-      result += `【错误】第 ${error.line} 行第 ${error.column} 列\n`;
-      result += `期望: ${error.expected.join(", ")} | 实际: ${error.got}\n`;
-      result += `── LLM 诊断 ──\n${diagnosis}\n\n`;
+      const header = `### 错误：第 ${error.line} 行第 ${error.column} 列\n\n` +
+        `**期望:** \`${error.expected.join(", ")}\`　**实际:** \`${error.got}\`\n\n`;
+      llmDiagnosis.value += header;
+      await diagnoseError(error, code.value, syncSet.value, (delta) => {
+        llmDiagnosis.value += delta;
+      });
+      llmDiagnosis.value += "\n\n---\n\n";
     }
-    llmDiagnosis.value = result;
   } catch (e) {
-    llmDiagnosis.value = `诊断失败: ${e}`;
+    llmDiagnosis.value += `\n\n**诊断失败:** ${e}`;
   } finally {
     diagnosing.value = false;
   }
 };
 
-// 原文直送 LLM（无结构化信息）
+// 原文直送 LLM（流式）
 const diagnoseRawHandler = async () => {
   if (errors.value.length === 0) return;
   rawDiagnosing.value = true;
@@ -78,9 +80,11 @@ const diagnoseRawHandler = async () => {
 
   try {
     const errorMsgs = errors.value.map((e) => e.message);
-    rawDiagnosis.value = await diagnoseRaw(code.value, errorMsgs);
+    await diagnoseRaw(code.value, errorMsgs, (delta) => {
+      rawDiagnosis.value += delta;
+    });
   } catch (e) {
-    rawDiagnosis.value = `诊断失败: ${e}`;
+    rawDiagnosis.value += `\n\n**诊断失败:** ${e}`;
   } finally {
     rawDiagnosing.value = false;
   }
@@ -97,6 +101,7 @@ F -> ( E )
 F -> id`);
 const generatePrompt = ref("生成一个算术表达式");
 const constrainedResult = ref<LLMGenerationResult | null>(null);
+const constrainedText = ref("");
 const firstSets = ref<Map<string, Set<string>>>(new Map());
 const generating = ref(false);
 
@@ -111,29 +116,35 @@ const computeFirstSets = () => {
   }
 };
 
+const buildConstraints = () => {
+  computeFirstSets();
+  const allowedTokens = new Set<string>();
+  for (const [, set] of firstSets.value) {
+    for (const t of set) {
+      if (t !== "ε") allowedTokens.add(t);
+    }
+  }
+  try {
+    const grammar = parseGrammar(grammarText.value);
+    for (const t of grammar.terminals) {
+      allowedTokens.add(t);
+    }
+  } catch {
+    // ignore
+  }
+  return [createTokenConstraint(Array.from(allowedTokens))];
+};
+
 const generateConstrained = async () => {
   generating.value = true;
+  constrainedText.value = "";
   try {
-    computeFirstSets();
-    // 从 FIRST 集构造约束
-    const allowedTokens = new Set<string>();
-    for (const [, set] of firstSets.value) {
-      for (const t of set) {
-        if (t !== "ε") allowedTokens.add(t);
-      }
-    }
-    // 加上文法终结符
-    try {
-      const grammar = parseGrammar(grammarText.value);
-      for (const t of grammar.terminals) {
-        allowedTokens.add(t);
-      }
-    } catch {
-      // ignore
-    }
-
-    const constraints = [createTokenConstraint(Array.from(allowedTokens))];
-    constrainedResult.value = await generateWithConstraints(generatePrompt.value, constraints);
+    const constraints = buildConstraints();
+    constrainedResult.value = await generateWithConstraints(
+      generatePrompt.value,
+      constraints,
+      (delta) => { constrainedText.value += delta; },
+    );
   } catch (e) {
     constrainedResult.value = {
       text: `生成失败: ${e}`,
@@ -153,31 +164,23 @@ const experimentResult = ref<{
   unconstrained: LLMGenerationResult;
   complianceRate: number;
 } | null>(null);
+const expConstrainedText = ref("");
+const expUnconstrainedText = ref("");
 const experimenting = ref(false);
 
 const runExperiment = async () => {
   experimenting.value = true;
+  expConstrainedText.value = "";
+  expUnconstrainedText.value = "";
   try {
-    computeFirstSets();
-    const allowedTokens = new Set<string>();
-    for (const [, set] of firstSets.value) {
-      for (const t of set) {
-        if (t !== "ε") allowedTokens.add(t);
-      }
-    }
-    try {
-      const grammar = parseGrammar(grammarText.value);
-      for (const t of grammar.terminals) {
-        allowedTokens.add(t);
-      }
-    } catch {
-      // ignore
-    }
-
-    const constraints = [createTokenConstraint(Array.from(allowedTokens))];
+    const constraints = buildConstraints();
     experimentResult.value = await compareConstrainedVsUnconstrained(
       experimentPrompt.value,
       constraints,
+      {
+        constrainedChunk: (delta) => { expConstrainedText.value += delta; },
+        unconstrainedChunk: (delta) => { expUnconstrainedText.value += delta; },
+      },
     );
   } catch (e) {
     console.error(e);
@@ -228,9 +231,7 @@ computeFirstSets();
                       :title="`错误 ${idx + 1}`"
                     >
                       <p>{{ error.message }}</p>
-                      <p>
-                        位置: 第 {{ error.line }} 行, 第 {{ error.column }} 列
-                      </p>
+                      <p>位置: 第 {{ error.line }} 行, 第 {{ error.column }} 列</p>
                       <p>期望: {{ error.expected.join(", ") }}</p>
                       <p>实际: {{ error.got }}</p>
                     </NAlert>
@@ -255,8 +256,7 @@ computeFirstSets();
                       <NTag type="success" size="small">期望Token + 错误位置 + 同步符号</NTag>
                     </NSpace>
                   </template>
-                  <NSpin v-if="diagnosing" />
-                  <pre v-else class="whitespace-pre-wrap">{{ llmDiagnosis }}</pre>
+                  <MarkdownRender v-if="llmDiagnosis" :content="llmDiagnosis" />
                 </NCard>
               </NGridItem>
               <NGridItem>
@@ -267,8 +267,7 @@ computeFirstSets();
                       <NTag type="warning" size="small">仅错误信息文本</NTag>
                     </NSpace>
                   </template>
-                  <NSpin v-if="rawDiagnosing" />
-                  <pre v-else class="whitespace-pre-wrap">{{ rawDiagnosis }}</pre>
+                  <MarkdownRender v-if="rawDiagnosis" :content="rawDiagnosis" />
                 </NCard>
               </NGridItem>
             </NGrid>
@@ -309,10 +308,7 @@ computeFirstSets();
             </NCard>
 
             <NCard title="约束生成">
-              <NInput
-                v-model:value="generatePrompt"
-                placeholder="输入生成提示词..."
-              />
+              <NInput v-model:value="generatePrompt" placeholder="输入生成提示词..." />
               <template #footer>
                 <NButton type="primary" :loading="generating" @click="generateConstrained">
                   基于 FIRST 集约束生成
@@ -325,7 +321,7 @@ computeFirstSets();
                 <NAlert :type="constrainedResult.isValid ? 'success' : 'warning'">
                   {{ constrainedResult.isValid ? "✅ 所有 Token 均在 FIRST 集内" : "⚠️ 存在越界 Token" }}
                 </NAlert>
-                <pre class="whitespace-pre-wrap">{{ constrainedResult.text }}</pre>
+                <MarkdownRender v-if="constrainedText" :content="constrainedText" />
                 <div v-if="constrainedResult.violations.length > 0">
                   <p class="font-bold mb-2">违规项：</p>
                   <NAlert
@@ -350,10 +346,7 @@ computeFirstSets();
                 对同一提示词分别进行"无约束生成"和"文法约束生成"，比较格式合规率。
                 约束条件来自文法的 FIRST 集合，仅允许输出合法的终结符 Token。
               </p>
-              <NInput
-                v-model:value="experimentPrompt"
-                placeholder="输入实验提示词..."
-              />
+              <NInput v-model:value="experimentPrompt" placeholder="输入实验提示词..." />
               <template #footer>
                 <NButton type="primary" :loading="experimenting" @click="runExperiment">
                   运行对照实验
@@ -402,7 +395,7 @@ computeFirstSets();
                           <NTag type="success" size="small">有约束</NTag>
                         </NSpace>
                       </template>
-                      <pre class="whitespace-pre-wrap">{{ experimentResult.constrained.text }}</pre>
+                      <MarkdownRender v-if="expConstrainedText" :content="expConstrainedText" />
                       <div v-if="experimentResult.constrained.violations.length > 0" class="mt-2">
                         <NAlert
                           v-for="(v, i) in experimentResult.constrained.violations"
@@ -423,7 +416,7 @@ computeFirstSets();
                           <NTag type="warning" size="small">无约束</NTag>
                         </NSpace>
                       </template>
-                      <pre class="whitespace-pre-wrap">{{ experimentResult.unconstrained.text }}</pre>
+                      <MarkdownRender v-if="expUnconstrainedText" :content="expUnconstrainedText" />
                       <div v-if="experimentResult.unconstrained.violations.length > 0" class="mt-2">
                         <NAlert
                           v-for="(v, i) in experimentResult.unconstrained.violations"
