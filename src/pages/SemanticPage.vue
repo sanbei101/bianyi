@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref } from "vue";
 import { NCard, NSpace, NInput, NButton, NTable, NTabs, NTabPane, NAlert } from "naive-ui";
+import { ref } from "vue";
+
 import { tokenize } from "@/core/lexer";
 import { parseTokens } from "@/core/parser";
 import { analyzeSemantics } from "@/core/semantic";

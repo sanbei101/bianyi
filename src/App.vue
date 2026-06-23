@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import { h, ref } from "vue";
-import { NLayout, NLayoutSider, NMenu, NIcon } from "naive-ui";
-import type { MenuOption } from "naive-ui";
 import {
   Code as CodeIcon,
   LetterCase as GrammarIcon,
@@ -10,6 +7,9 @@ import {
   GitCompare as CompareIcon,
   Database as DatabaseIcon,
 } from "@vicons/tabler";
+import { NLayout, NLayoutSider, NMenu, NIcon } from "naive-ui";
+import type { MenuOption } from "naive-ui";
+import { h, ref } from "vue";
 import { useRouter } from "vue-router";
 
 const router = useRouter();

@@ -1,11 +1,12 @@
 import { createRouter, createWebHistory } from "vue-router";
 import type { RouteRecordRaw } from "vue-router";
+
+import ASTPage from "@/pages/ASTPage.vue";
+import GrammarPage from "@/pages/GrammarPage.vue";
 import Home from "@/pages/Home.vue";
 import LexerPage from "@/pages/LexerPage.vue";
-import GrammarPage from "@/pages/GrammarPage.vue";
 import LL1Page from "@/pages/LL1Page.vue";
 import LLMPage from "@/pages/LLMPage.vue";
-import ASTPage from "@/pages/ASTPage.vue";
 import SemanticPage from "@/pages/SemanticPage.vue";
 
 const routes: RouteRecordRaw[] = [

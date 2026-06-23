@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref } from "vue";
 import {
   NCard,
   NSpace,
@@ -12,9 +11,11 @@ import {
   NTabPane,
   NTag,
 } from "naive-ui";
+import { ref } from "vue";
+
+import { compareASTs } from "@/core/ast-similarity";
 import { tokenize } from "@/core/lexer";
 import { parseTokens } from "@/core/parser";
-import { compareASTs } from "@/core/ast-similarity";
 import type { ASTNode, ASTSimilarityResult } from "@/core/types";
 
 const code1 = ref(`int main() {

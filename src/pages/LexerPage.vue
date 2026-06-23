@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, h } from "vue";
 import { NCard, NSpace, NInput, NButton, NDataTable, NTabs, NTabPane, NTag } from "naive-ui";
 import type { DataTableColumns } from "naive-ui";
+import { ref, h } from "vue";
+
 import { tokenize } from "@/core/lexer";
 import type { Token } from "@/core/types";
 

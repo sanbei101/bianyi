@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref } from "vue";
 import { NCard, NSpace, NInput, NButton, NTag, NTimeline, NTimelineItem } from "naive-ui";
+import { ref } from "vue";
+
 import { GrammarAnalyzer, parseGrammar } from "@/core/grammar";
 import type { GrammarType, Production } from "@/core/types";
 
