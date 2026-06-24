@@ -75,6 +75,22 @@
     student-name: "龚浩然",
   )
   set text(font: ("Times New Roman", "SimSun"), size: 12pt)
+  show raw.where(block: false): it => box(
+    fill: rgb("#f6f8fa"),
+    stroke: 0.5pt + rgb("#d0d7de"),
+    inset: (x: 4pt, y: 0pt),
+    outset: (y: 3pt),
+    radius: 3pt,
+    text(size: 0.9em, it),
+  )
+  show raw.where(block: true): it => block(
+    fill: rgb("#f6f8fa"),
+    stroke: 0.5pt + rgb("#d0d7de"),
+    inset: 10pt,
+    radius: 6pt,
+    width: 100%,
+    text(size: 0.9em, it),
+  )
   set par(
     first-line-indent: (
       amount: 2em,
@@ -89,6 +105,15 @@
       #v(6pt)
     ]
   ]
+  show figure.where(kind: image): set figure(
+    supplement: [图],
+    numbering: i => numbering("1-1", ..counter(heading.where(level: 1)).get(), i),
+  )
+
+  show figure.where(kind: table): set figure(
+    supplement: [表],
+    numbering: i => numbering("1-1", ..counter(heading.where(level: 1)).get(), i),
+  )
   show ":": "："
   show ",": "，"
   [#body]
