@@ -4,7 +4,6 @@
   #v(-0.5em)
   #line(length: 100%, stroke: 1pt)
 ]
-#import "@preview/cuti:0.4.0": show-cn-fakebold
 #let justify(s) = {
   set text(weight: "bold")
   if type(s) == content and s.has("text") { s = s.text }
@@ -116,5 +115,7 @@
   )
   show ":": "："
   show ",": "，"
-  [#body]
+  [
+    #body
+  ]
 }
